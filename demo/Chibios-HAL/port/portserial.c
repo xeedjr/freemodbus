@@ -24,148 +24,18 @@
  */
 
 
-
+#include <stdint.h>
 #include "port.h"
 
 /* ----------------------- Modbus includes ----------------------------------*/
 #include "mb.h"
 #include "mbport.h"
+#include "hal.h"
 
-/*#define UART_BAUD_RATE          9600
-#define UART_BAUD_CALC(UART_BAUD_RATE,F_OSC) \
-    ( ( F_OSC ) / ( ( UART_BAUD_RATE ) * 16UL ) - 1 )
-*/
-//#define UART_UCSRB  UCSR0B
+#define MB_UART UARTD1
 
 char rx_char = 0;
-/*
- * UART driver configuration structure.
- */
-static UARTConfig uart_cfg_1 = {
-  txend1,
-  txend2,
-  rxend,
-  rxchar,
-  rxerr,
-  38400,
-  0,
-  USART_CR2_LINEN,
-  0
-};
-
-void
-vMBPortSerialEnable( BOOL xRxEnable, BOOL xTxEnable )
-{
-/*#ifdef RTS_ENABLE
-    UCSRB |= _BV( TXEN ) | _BV(TXCIE);
-#else
-    UCSRB |= _BV( TXEN );
-#endif
-*/
-    if( xRxEnable )
-    {
-		uartStartReceiveI(&UARTD2, 0, "");
-//        UCSRB |= _BV( RXEN ) | _BV( RXCIE );
-    }
-    else
-    {
-		uartStopReceiveI(&UARTD2);
-//        UCSRB &= ~( _BV( RXEN ) | _BV( RXCIE ) );
-    }
-
-    if( xTxEnable )
-    {
-		uartStartSendI(&UARTD2, 0, "");
-//        UCSRB |= _BV( TXEN ) | _BV( UDRE );
-#ifdef RTS_ENABLE
-//        RTS_HIGH;
-#endif
-    }
-    else
-    {
-		uartStopSendI(&UARTD2);
-//        UCSRB &= ~( _BV( UDRE ) );
-    }
-
-}
-
-BOOL
-xMBPortSerialInit( UCHAR ucPORT, ULONG ulBaudRate, UCHAR ucDataBits, eMBParity eParity )
-{
-	uartStart(&UARTD2, &uart_cfg_1);
-/*    UCHAR ucUCSRC = 0;
-
-    // prevent compiler warning. 
-    (void)ucPORT;
-	
-    UBRR = UART_BAUD_CALC( ulBaudRate, F_CPU );
-
-    switch ( eParity )
-    {
-        case MB_PAR_EVEN:
-            ucUCSRC |= _BV( UPM1 );
-            break;
-        case MB_PAR_ODD:
-            ucUCSRC |= _BV( UPM1 ) | _BV( UPM0 );
-            break;
-        case MB_PAR_NONE:
-            break;
-    }
-
-    switch ( ucDataBits )
-    {
-        case 8:
-            ucUCSRC |= _BV( UCSZ0 ) | _BV( UCSZ1 );
-            break;
-        case 7:
-            ucUCSRC |= _BV( UCSZ1 );
-            break;
-    }
-
-#if defined (__AVR_ATmega168__)
-    UCSRC |= ucUCSRC;
-#elif defined (__AVR_ATmega169__)
-    UCSRC |= ucUCSRC;
-#elif defined (__AVR_ATmega8__)
-    UCSRC = _BV( URSEL ) | ucUCSRC;
-#elif defined (__AVR_ATmega16__)
-    UCSRC = _BV( URSEL ) | ucUCSRC;
-#elif defined (__AVR_ATmega32__)
-    UCSRC = _BV( URSEL ) | ucUCSRC;
-#elif defined (__AVR_ATmega128__)
-    UCSRC |= ucUCSRC;
-#endif
-
-    vMBPortSerialEnable( FALSE, FALSE );
-
-#ifdef RTS_ENABLE
-    RTS_INIT;
-#endif
-*/
-
-    return TRUE;
-}
-
-BOOL
-xMBPortSerialPutByte( CHAR ucByte )
-{
-	uartStartSend(&UARTD2, 1, ucByte);
-
-/*
-    UDR = ucByte;
-*/
-    return TRUE;
-}
-
-BOOL
-xMBPortSerialGetByte( CHAR * pucByte )
-{
-	*pucByte = rx_char;
-/*
-    *pucByte = UDR;
-*/
-    return TRUE;
-}
+char tx_char = 0;
 
 /*
  * This callback is invoked when a transmission buffer has been completely
@@ -220,17 +90,86 @@ static void rxend(UARTDriver *uartp) {
 
   (void)uartp;
 }
-/*SIGNAL( SIG_USART_DATA )
+
+/*
+ * UART driver configuration structure.
+ */
+static UARTConfig uart_cfg_1 = {
+  txend1,
+  txend2,
+  rxend,
+  rxchar,
+  rxerr,
+  115200,
+  0,
+  0,
+  0
+};
+
+void
+vMBPortSerialEnable( BOOL xRxEnable, BOOL xTxEnable )
 {
-    pxMBFrameCBTransmitterEmpty(  );
+#ifdef RTS_ENABLE
+    UCSRB |= _BV( TXEN ) | _BV(TXCIE);
+#else
+
+#endif
+
+    if( xRxEnable )
+    {
+		uartStartReceiveI(&MB_UART, 1, &rx_char);
+    }
+    else
+    {
+    }
+
+    if( xTxEnable )
+    {
+		pxMBFrameCBTransmitterEmpty(  );
+#ifdef RTS_ENABLE
+        RTS_HIGH;
+#endif
+    }
+    else
+    {
+		uartStopSendI(&MB_UART);
+    }
+
 }
 
-SIGNAL( SIG_USART_RECV )
+BOOL
+xMBPortSerialInit( UCHAR ucPORT, ULONG ulBaudRate, UCHAR ucDataBits, eMBParity eParity )
 {
-    pxMBFrameCBByteReceived(  );
-}
+	uartStart(&MB_UART, &uart_cfg_1);
+
 
 #ifdef RTS_ENABLE
+    RTS_INIT;
+#endif
+
+
+    return TRUE;
+}
+
+BOOL
+xMBPortSerialPutByte( CHAR ucByte )
+{
+	tx_char = ucByte;
+	uartStartSendI(&MB_UART, 1, &tx_char);
+
+    return TRUE;
+}
+
+BOOL
+xMBPortSerialGetByte( CHAR * pucByte )
+{
+	*pucByte = rx_char;
+
+    return TRUE;
+}
+
+
+/*#ifdef RTS_ENABLE
 SIGNAL( SIG_UART_TRANS )
 {
     RTS_LOW;

@@ -30,16 +30,14 @@
 
 /* ----------------------- System includes ----------------------------------*/
 #include <stdlib.h>
-#include <FreeRTOS.h>
-#include <task.h>
-#include <semphr.h>
+#include "ch.h"
 
 /* ----------------------- Modbus includes ----------------------------------*/
 #include "mb.h"
 #include "mbport.h"
 
 /* ----------------------- Modbus includes ----------------------------------*/
-#include <intrinsics.h>
+
 
 /* ----------------------- Variables ----------------------------------------*/
 static BOOL     bIsWithinException = FALSE;
@@ -61,13 +59,16 @@ bMBPortIsWithinException( void )
 void
 vMBPortEnterCritical( void )
 {
-    taskENTER_CRITICAL(  );
+	/* Entering a critical section.*/
+	  chSysLock();
+
 }
 
 void
 vMBPortExitCritical( void )
 {
-    taskEXIT_CRITICAL(  );
+	 /* Leaving the critical section.*/
+	  chSysUnlock();
 }
 
 void
@@ -76,7 +77,7 @@ vMBPortClose( void )
     extern void     vMBPortSerialClose( void );
     extern void     vMBPortTimerClose( void );
     extern void     vMBPortEventClose( void );
-    vMBPortSerialClose(  );
-    vMBPortTimerClose(  );
-    vMBPortEventClose(  );
+    //vMBPortSerialClose(  );
+    //vMBPortTimerClose(  );
+    //vMBPortEventClose(  );
 }

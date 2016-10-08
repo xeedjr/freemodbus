@@ -36,7 +36,6 @@
 #include "mbport.h"
 
 /* ----------------------- Variables ----------------------------------------*/
-//static xQueueHandle xQueueHdl;
 osMessageQId		xQueueHdl;
 osMessageQDef (xQueueHdl, 3, unsigned char);
 
@@ -61,7 +60,6 @@ vMBPortEventClose( void )
 {
     if( 0 != xQueueHdl )
     {
-        //vQueueDelete( xQueueHdl );
         xQueueHdl = 0;
     }
 }
@@ -72,13 +70,11 @@ xMBPortEventPost( eMBEventType eEvent )
     BOOL            bStatus = TRUE;
     if( bMBPortIsWithinException(  ) )
     {
-        //( void )xQueueSendFromISR( xQueueHdl, ( const void * )&eEvent, pdFALSE );
 		osMessagePut(xQueueHdl, eEvent, osWaitForever);
     }
     else
     {
-		osMessagePut(xQueueHdl, eEvent, osWaitForever);
-        //( void )xQueueSend( xQueueHdl, ( const void * )&eEvent, pdFALSE );
+		osMessagePut(xQueueHdl, eEvent, 0);
     }
 
     return bStatus;
@@ -92,7 +88,7 @@ xMBPortEventGet( eMBEventType * peEvent )
 
 	peEvent_ = osMessageGet(xQueueHdl, osWaitForever);
 
-    if( 0 == peEvent_.status)
+    if( osEventMessage == peEvent_.status)
     {
 		*peEvent = peEvent_.value.v;
         xEventHappened = TRUE;

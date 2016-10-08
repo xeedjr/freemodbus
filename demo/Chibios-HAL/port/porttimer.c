@@ -20,8 +20,6 @@
  */
 
 /* ----------------------- AVR includes -------------------------------------*/
-#include <hal.h>
-
 
 /* ----------------------- Platform includes --------------------------------*/
 #include "port.h"
@@ -29,9 +27,12 @@
 /* ----------------------- Modbus includes ----------------------------------*/
 #include "mb.h"
 #include "mbport.h"
+#include "hal.h"
+
+#define TIMER GPTD1
 
 /* ----------------------- Defines ------------------------------------------*/
-static void gpt2cb(GPTDriver *gptp)
+static void gpt2cb(GPTDriver *gptp);
 
 /* ----------------------- Static variables ---------------------------------*/
 static GPTConfig gpt2cfg =
@@ -46,7 +47,7 @@ BOOL
 xMBPortTimersInit( USHORT usTim1Timerout50us )
 {
 
-	gptStart(&GPTD1, &gpt2cfg);
+	gptStart(&TIMER, &gpt2cfg);
 
 	usTim1Timerout50us_ = usTim1Timerout50us;
 
@@ -59,30 +60,19 @@ xMBPortTimersInit( USHORT usTim1Timerout50us )
 inline void
 vMBPortTimersEnable(  )
 {
-	 gptStartOneShotI(&GPTD1, usTim1Timerout50us_);
-	 /*
-	     TCNT1 = 0x0000;
-    if( usTimerOCRADelta > 0 )
-    {
-        TIMSK1 |= _BV( OCIE1A );
-        OCR1A = usTimerOCRADelta;
-    }
-
-    TCCR1B |= _BV( CS12 ) | _BV( CS10 );
-	*/
+	 gptStartOneShotI(&TIMER, usTim1Timerout50us_);
 }
 
 
 inline void
 vMBPortTimersDisable(  )
 {
-	gptStopTimerI(&GPTD1);
-    /* Disable the timer. */
-//    TCCR1B &= ~( _BV( CS12 ) | _BV( CS10 ) );
-    /* Disable the output compare interrupts for channel A/B. */
-//    TIMSK1 &= ~( _BV( OCIE1A ) );
-    /* Clear output compare flags for channel A/B. */
-//    TIFR1 |= _BV( OCF1A ) ;
+	gptStopTimerI(&TIMER);
+}
+
+void vMBPortTimersDelay( USHORT usTimeOutMS )
+{
+	gptPolledDelay(&TIMER, 20 * usTimeOutMS);
 }
 
 static void gpt2cb(GPTDriver *gptp)
