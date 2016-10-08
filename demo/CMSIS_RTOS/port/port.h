@@ -71,5 +71,6 @@ BOOL            bMBPortIsWithinException( void );
 
 void            vMBPortEnterCritical( void );
 void            vMBPortExitCritical( void );
+void xMBPortPollThreadInit( void );
 
 #endif
