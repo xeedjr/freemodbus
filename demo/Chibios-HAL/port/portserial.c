@@ -37,6 +37,11 @@
 char rx_char = 0;
 char tx_char = 0;
 
+#define RTS_ENABLE 1
+#define RTS_HIGH palSetPad(GPIOA, 12)
+#define RTS_LOW  palClearPad(GPIOA, 12)
+#define RTS_INIT RTS_LOW
+
 /*
  * This callback is invoked when a transmission buffer has been completely
  * read by the driver.
@@ -77,11 +82,11 @@ static void rxchar(UARTDriver *uartp, uint16_t c) {
   (void)uartp;
   (void)c;
 
-  chSysLockFromISR();
+/*  chSysLockFromISR();
   rx_char = c;
   pxMBFrameCBByteReceived(  );
   chSysUnlockFromISR();
-}
+*/}
 
 /*
  * This callback is invoked when a receive buffer has been completely written.
@@ -89,6 +94,10 @@ static void rxchar(UARTDriver *uartp, uint16_t c) {
 static void rxend(UARTDriver *uartp) {
 
   (void)uartp;
+  chSysLockFromISR();
+  pxMBFrameCBByteReceived(  );
+  uartStartReceiveI(&MB_UART, 1, &rx_char);
+  chSysUnlockFromISR();
 }
 
 /*
@@ -100,7 +109,7 @@ static UARTConfig uart_cfg_1 = {
   rxend,
   rxchar,
   rxerr,
-  115200,
+  921600,
   0,
   0,
   0
@@ -110,7 +119,7 @@ void
 vMBPortSerialEnable( BOOL xRxEnable, BOOL xTxEnable )
 {
 #ifdef RTS_ENABLE
-    UCSRB |= _BV( TXEN ) | _BV(TXCIE);
+    //UCSRB |= _BV( TXEN ) | _BV(TXCIE);
 #else
 
 #endif
@@ -121,6 +130,7 @@ vMBPortSerialEnable( BOOL xRxEnable, BOOL xTxEnable )
     }
     else
     {
+    	uartStopReceiveI(&MB_UART);
     }
 
     if( xTxEnable )
@@ -133,6 +143,9 @@ vMBPortSerialEnable( BOOL xRxEnable, BOOL xTxEnable )
     else
     {
 		uartStopSendI(&MB_UART);
+#ifdef RTS_ENABLE
+        RTS_LOW;
+#endif
     }
 
 }
@@ -140,6 +153,7 @@ vMBPortSerialEnable( BOOL xRxEnable, BOOL xTxEnable )
 BOOL
 xMBPortSerialInit( UCHAR ucPORT, ULONG ulBaudRate, UCHAR ucDataBits, eMBParity eParity )
 {
+	uart_cfg_1.speed = ulBaudRate;
 	uartStart(&MB_UART, &uart_cfg_1);
 
 
