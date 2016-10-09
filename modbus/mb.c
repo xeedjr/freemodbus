@@ -187,7 +187,6 @@ eMBInit( eMBMode eMode, UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRate, eM
                 eMBCurrentMode = eMode;
                 eMBState = STATE_DISABLED;
             }
-            xMBPortPollThreadInit();
         }
     }
     return eStatus;
