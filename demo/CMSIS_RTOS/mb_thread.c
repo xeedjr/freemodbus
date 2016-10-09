@@ -11,15 +11,13 @@
 osThreadId mb_thread_ID;
 void mb_thread (void const *argument) {
 
-	eMBInit( MB_RTU, 1, 1, 115200, MB_PAR_NONE );
-
-	eMBEnable();
-
 	while(1) {
 		eMBPoll();
 	}
 }
 osThreadDef(mb_thread, osPriorityNormal, 128);
 
-
+void xMBPortPollThreadInit( void ) {
+	mb_thread_ID = osThreadCreate(osThread(mb_thread), NULL);
+}
 
