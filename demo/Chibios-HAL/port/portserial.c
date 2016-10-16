@@ -32,14 +32,14 @@
 #include "mbport.h"
 #include "hal.h"
 
-#define MB_UART UARTD1
+#define MB_UART USER_MB_USART
 
 char rx_char = 0;
 char tx_char = 0;
 
 #define RTS_ENABLE 1
-#define RTS_HIGH palSetPad(GPIOA, 12)
-#define RTS_LOW  palClearPad(GPIOA, 12)
+#define RTS_HIGH palSetPad(USER_MB_RS485_RTS_PORT, USER_MB_RS485_RTS)
+#define RTS_LOW  palClearPad(USER_MB_RS485_RTS_PORT, USER_MB_RS485_RTS)
 #define RTS_INIT RTS_LOW
 
 /*

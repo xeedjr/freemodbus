@@ -72,7 +72,15 @@ BOOL            bMBPortIsWithinException( void );
 void            vMBPortEnterCritical( void );
 void            vMBPortExitCritical( void );
 
+#ifdef __cplusplus
+PR_BEGIN_EXTERN_C
+#endif
+
 void xMBPortPollThreadInit( void );
+
+#ifdef __cplusplus
+PR_END_EXTERN_C
+#endif
 
 
 #endif
