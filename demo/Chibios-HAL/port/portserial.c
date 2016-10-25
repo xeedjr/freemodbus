@@ -38,10 +38,12 @@ char rx_char = 0;
 char tx_char = 0;
 
 #define RTS_ENABLE 1
+
+#if (RTS_ENABLE == 1)
 #define RTS_HIGH palSetPad(USER_MB_RS485_RTS_PORT, USER_MB_RS485_RTS)
 #define RTS_LOW  palClearPad(USER_MB_RS485_RTS_PORT, USER_MB_RS485_RTS)
 #define RTS_INIT RTS_LOW
-
+#endif
 /*
  * This callback is invoked when a transmission buffer has been completely
  * read by the driver.
