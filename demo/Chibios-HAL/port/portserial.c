@@ -59,7 +59,9 @@ static void txend2(UARTDriver *uartp) {
   (void)uartp;
 
   chSysLockFromISR();
+  vMBPortEnterISR();
   pxMBFrameCBTransmitterEmpty(  );
+  vMBPortLeaveISR();
   chSysUnlockFromISR();
 }
 
@@ -95,8 +97,10 @@ static void rxend(UARTDriver *uartp) {
 
   (void)uartp;
   chSysLockFromISR();
+  vMBPortEnterISR();
   pxMBFrameCBByteReceived(  );
   uartStartReceiveI(&MB_UART, 1, &rx_char);
+  vMBPortLeaveISR();
   chSysUnlockFromISR();
 }
 
@@ -124,30 +128,57 @@ vMBPortSerialEnable( BOOL xRxEnable, BOOL xTxEnable )
 
 #endif
 
-    if( xRxEnable )
-    {
-		uartStartReceiveI(&MB_UART, 1, &rx_char);
-    }
-    else
-    {
-    	uartStopReceiveI(&MB_UART);
-    }
+	if (bMBPortIsInISR() == TRUE) {
+		if( xRxEnable )
+		{
+			uartStartReceiveI(&MB_UART, 1, &rx_char);
+		}
+		else
+		{
+			uartStopReceiveI(&MB_UART);
+		}
+	} else {
+		if( xRxEnable )
+		{
+			uartStartReceive(&MB_UART, 1, &rx_char);
+		}
+		else
+		{
+			uartStopReceive(&MB_UART);
+		}
+	}
 
-    if( xTxEnable )
-    {
-		pxMBFrameCBTransmitterEmpty(  );
+	if (bMBPortIsInISR() == TRUE) {
+		if( xTxEnable )
+		{
 #ifdef RTS_ENABLE
-        RTS_HIGH;
+		RTS_HIGH;
 #endif
-    }
-    else
-    {
-		uartStopSendI(&MB_UART);
+			pxMBFrameCBTransmitterEmpty(  );
+		}
+		else
+		{
+			uartStopSendI(&MB_UART);
+	#ifdef RTS_ENABLE
+			RTS_LOW;
+	#endif
+		}
+	}else {
+		if( xTxEnable )
+		{
 #ifdef RTS_ENABLE
-        RTS_LOW;
+		RTS_HIGH;
 #endif
-    }
-
+			pxMBFrameCBTransmitterEmpty(  );
+		}
+		else
+		{
+			uartStopSend(&MB_UART);
+	#ifdef RTS_ENABLE
+			RTS_LOW;
+	#endif
+		}
+	};
 }
 
 BOOL
@@ -169,7 +200,11 @@ BOOL
 xMBPortSerialPutByte( CHAR ucByte )
 {
 	tx_char = ucByte;
-	uartStartSendI(&MB_UART, 1, &tx_char);
+	if (bMBPortIsInISR() == TRUE) {
+		uartStartSendI(&MB_UART, 1, &tx_char);
+	} else {
+		uartStartSend(&MB_UART, 1, &tx_char);
+	}
 
     return TRUE;
 }

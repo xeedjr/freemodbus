@@ -31,6 +31,7 @@
 /* ----------------------- System includes ----------------------------------*/
 #include <stdlib.h>
 #include "ch.h"
+#include "cmsis_os.h"
 
 /* ----------------------- Modbus includes ----------------------------------*/
 #include "mb.h"
@@ -40,36 +41,52 @@
 
 
 /* ----------------------- Variables ----------------------------------------*/
-static BOOL     bIsWithinException = FALSE;
+static uint8_t     bIsInISR_ = 0;
+osSemaphoreId multiplex;
+osSemaphoreDef(multiplex);
 
 /* ----------------------- Start implementation -----------------------------*/
 
 void
-vMBPortSetWithinException( BOOL bInException )
+vMBPortEnterISR()
 {
-    bIsWithinException = bInException;
+	bIsInISR_++;
+}
+
+void
+vMBPortLeaveISR()
+{
+	bIsInISR_--;
 }
 
 BOOL
-bMBPortIsWithinException( void )
+bMBPortIsInISR( void )
 {
-    return bIsWithinException;
+	if (bIsInISR_ == 0) {
+		return FALSE;
+	}
+
+    return TRUE;
 }
 
 void
 vMBPortEnterCritical( void )
 {
 	/* Entering a critical section.*/
-	  chSysLock();
+	if (multiplex == NULL) {
+		multiplex = osSemaphoreCreate(osSemaphore(multiplex), 5);
+	}
 
+	osSemaphoreWait(multiplex, TIME_INFINITE);
 }
 
 void
 vMBPortExitCritical( void )
 {
 	 /* Leaving the critical section.*/
-	  chSysUnlock();
+	osSemaphoreRelease(multiplex);
 }
+
 
 void
 vMBPortClose( void )

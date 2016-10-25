@@ -68,13 +68,15 @@ BOOL
 xMBPortEventPost( eMBEventType eEvent )
 {
     BOOL            bStatus = TRUE;
-    if( bMBPortIsWithinException(  ) )
+    if( bMBPortIsInISR(  ) == TRUE)
     {
-		osMessagePut(xQueueHdl, eEvent, osWaitForever);
+    	chSysUnlockFromISR();
+		osMessagePut(xQueueHdl, eEvent, 0);
+		chSysLockFromISR();
     }
     else
     {
-		osMessagePut(xQueueHdl, eEvent, 0);
+		osMessagePut(xQueueHdl, eEvent, osWaitForever);
     }
 
     return bStatus;

@@ -56,18 +56,26 @@ xMBPortTimersInit( USHORT usTim1Timerout50us )
     return TRUE;
 }
 
-
 inline void
 vMBPortTimersEnable(  )
 {
-	 gptStartOneShotI(&TIMER, usTim1Timerout50us_);
+	if (bMBPortIsInISR() == TRUE) {
+		gptStopTimerI(&TIMER);
+		gptStartOneShotI(&TIMER, usTim1Timerout50us_);
+	} else {
+		gptStopTimer(&TIMER);
+		gptStartOneShot(&TIMER, usTim1Timerout50us_);
+	};
 }
-
 
 inline void
 vMBPortTimersDisable(  )
 {
-	gptStopTimerI(&TIMER);
+	if (bMBPortIsInISR() == TRUE) {
+		gptStopTimerI(&TIMER);
+	} else {
+		gptStopTimer(&TIMER);
+	};
 }
 
 void vMBPortTimersDelay( USHORT usTimeOutMS )
@@ -77,6 +85,10 @@ void vMBPortTimersDelay( USHORT usTimeOutMS )
 
 static void gpt2cb(GPTDriver *gptp)
 {
-  ( void )pxMBPortCBTimerExpired(  );
+	chSysLockFromISR();
+	vMBPortEnterISR();
+	( void )pxMBPortCBTimerExpired(  );
+	vMBPortLeaveISR();
+	chSysUnlockFromISR();
 }
 

@@ -66,8 +66,12 @@ typedef long    LONG;
 #define MB_ASCII_TIMEOUT_WAIT_BEFORE_SEND_MS    2
 
 /* ----------------------- Prototypes ---------------------------------------*/
-void            vMBPortSetWithinException( BOOL bInException );
-BOOL            bMBPortIsWithinException( void );
+void
+vMBPortEnterISR();
+void
+vMBPortLeaveISR();
+BOOL
+bMBPortIsInISR( void );
 
 void            vMBPortEnterCritical( void );
 void            vMBPortExitCritical( void );
