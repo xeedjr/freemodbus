@@ -29,7 +29,7 @@
 #include "mbport.h"
 #include "hal.h"
 
-#define TIMER GPTD1
+#define TIMER USER_MB_TIMER
 
 /* ----------------------- Defines ------------------------------------------*/
 static void gpt2cb(GPTDriver *gptp);
