@@ -37,12 +37,12 @@
 char rx_char = 0;
 char tx_char = 0;
 
-#define RTS_ENABLE 1
+#define RTS_ENABLE USER_MB_RTS_ENABLE
 
 #if (RTS_ENABLE == 1)
-#define RTS_HIGH palSetPad(USER_MB_RS485_RTS_PORT, USER_MB_RS485_RTS)
-#define RTS_LOW  palClearPad(USER_MB_RS485_RTS_PORT, USER_MB_RS485_RTS)
-#define RTS_INIT RTS_LOW
+	#define RTS_HIGH palSetPad(USER_MB_RS485_RTS_PORT, USER_MB_RS485_RTS)
+	#define RTS_LOW  palClearPad(USER_MB_RS485_RTS_PORT, USER_MB_RS485_RTS)
+	#define RTS_INIT RTS_LOW
 #endif
 /*
  * This callback is invoked when a transmission buffer has been completely
@@ -124,7 +124,7 @@ static UARTConfig uart_cfg_1 = {
 void
 vMBPortSerialEnable( BOOL xRxEnable, BOOL xTxEnable )
 {
-#ifdef RTS_ENABLE
+#if (RTS_ENABLE == 1)
     //UCSRB |= _BV( TXEN ) | _BV(TXCIE);
 #else
 
@@ -153,7 +153,7 @@ vMBPortSerialEnable( BOOL xRxEnable, BOOL xTxEnable )
 	if (bMBPortIsInISR() == TRUE) {
 		if( xTxEnable )
 		{
-#ifdef RTS_ENABLE
+#if (RTS_ENABLE == 1)
 		RTS_HIGH;
 #endif
 			pxMBFrameCBTransmitterEmpty(  );
@@ -161,14 +161,14 @@ vMBPortSerialEnable( BOOL xRxEnable, BOOL xTxEnable )
 		else
 		{
 			uartStopSendI(&MB_UART);
-	#ifdef RTS_ENABLE
+	#if (RTS_ENABLE == 1)
 			RTS_LOW;
 	#endif
 		}
 	}else {
 		if( xTxEnable )
 		{
-#ifdef RTS_ENABLE
+#if (RTS_ENABLE == 1)
 		RTS_HIGH;
 #endif
 			pxMBFrameCBTransmitterEmpty(  );
@@ -176,7 +176,7 @@ vMBPortSerialEnable( BOOL xRxEnable, BOOL xTxEnable )
 		else
 		{
 			uartStopSend(&MB_UART);
-	#ifdef RTS_ENABLE
+	#if (RTS_ENABLE == 1)
 			RTS_LOW;
 	#endif
 		}
@@ -190,7 +190,7 @@ xMBPortSerialInit( UCHAR ucPORT, ULONG ulBaudRate, UCHAR ucDataBits, eMBParity e
 	uartStart(&MB_UART, &uart_cfg_1);
 
 
-#ifdef RTS_ENABLE
+#if (RTS_ENABLE == 1)
     RTS_INIT;
 #endif
 
@@ -220,7 +220,7 @@ xMBPortSerialGetByte( CHAR * pucByte )
 }
 
 
-/*#ifdef RTS_ENABLE
+/*#if (RTS_ENABLE == 1)
 SIGNAL( SIG_UART_TRANS )
 {
     RTS_LOW;
