@@ -156,7 +156,7 @@ vMBPortSerialEnable( BOOL xRxEnable, BOOL xTxEnable )
 #if (RTS_ENABLE == 1)
 		RTS_HIGH;
 #endif
-			pxMBFrameCBTransmitterEmpty(  );
+			vMBPortTimersStartTransmision(  );
 		}
 		else
 		{
@@ -171,7 +171,7 @@ vMBPortSerialEnable( BOOL xRxEnable, BOOL xTxEnable )
 #if (RTS_ENABLE == 1)
 		RTS_HIGH;
 #endif
-			pxMBFrameCBTransmitterEmpty(  );
+			vMBPortTimersStartTransmision(  );
 		}
 		else
 		{
@@ -187,6 +187,7 @@ BOOL
 xMBPortSerialInit( UCHAR ucPORT, ULONG ulBaudRate, UCHAR ucDataBits, eMBParity eParity )
 {
 	uart_cfg_1.speed = ulBaudRate;
+	uart_cfg_1.sc_bits_per_char =  USART_CHAR_SIZE_8;
 	uartStart(&MB_UART, &uart_cfg_1);
 
 

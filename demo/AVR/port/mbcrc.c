@@ -24,7 +24,7 @@
 #include <avr/pgmspace.h>
 
 /* ----------------------- Platform includes --------------------------------*/
-#include "port.h"
+#include <port.h>
 
 static const PROGMEM UCHAR aucCRCHi[] = {
     0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41,

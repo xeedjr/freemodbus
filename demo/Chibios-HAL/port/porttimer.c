@@ -41,6 +41,7 @@ static GPTConfig gpt2cfg =
   gpt2cb        /* Timer callback. */
 };
 static USHORT   usTim1Timerout50us_;
+static BOOL normal = TRUE;
 
 /* ----------------------- Start implementation -----------------------------*/
 BOOL
@@ -87,8 +88,26 @@ static void gpt2cb(GPTDriver *gptp)
 {
 	chSysLockFromISR();
 	vMBPortEnterISR();
-	( void )pxMBPortCBTimerExpired(  );
+	if (normal == TRUE) {
+		( void )pxMBPortCBTimerExpired(  );
+	} else {
+		pxMBFrameCBTransmitterEmpty(  );
+		normal = TRUE;
+	};
 	vMBPortLeaveISR();
 	chSysUnlockFromISR();
+}
+
+void
+vMBPortTimersStartTransmision(  )
+{
+	normal = FALSE;
+	if (bMBPortIsInISR() == TRUE) {
+		gptStopTimerI(&TIMER);
+		gptStartOneShotI(&TIMER, 1);
+	} else {
+		gptStopTimer(&TIMER);
+		gptStartOneShot(&TIMER, 1);
+	};
 }
 
