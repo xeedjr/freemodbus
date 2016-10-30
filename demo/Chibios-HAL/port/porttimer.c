@@ -104,10 +104,10 @@ vMBPortTimersStartTransmision(  )
 	normal = FALSE;
 	if (bMBPortIsInISR() == TRUE) {
 		gptStopTimerI(&TIMER);
-		gptStartOneShotI(&TIMER, 1);
+		gptStartOneShotI(&TIMER, 2);
 	} else {
 		gptStopTimer(&TIMER);
-		gptStartOneShot(&TIMER, 1);
+		gptStartOneShot(&TIMER, 2);
 	};
 }
 
