@@ -16,7 +16,7 @@ void mb_thread (void const *argument) {
 		eMBPoll();
 	}
 }
-osThreadDef(mb_thread, osPriorityNormal, USER_MB_THREAD_WORK_AREA_SIZE);
+osThreadDef(mb_thread, USER_MB_THREAD_PRIORITY, USER_MB_THREAD_WORK_AREA_SIZE);
 
 void xMBPortPollThreadInit( void ) {
 	mb_thread_ID = osThreadCreate(osThread(mb_thread), NULL);
