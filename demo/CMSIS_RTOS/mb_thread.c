@@ -16,13 +16,12 @@ void mb_thread (void const *argument) {
 		eMBPoll();
 	}
 }
-osThreadDef(mb_thread, USER_MB_THREAD_PRIORITY, USER_MB_THREAD_WORK_AREA_SIZE);
+osThreadDef(mb_thread, USER_MB_THREAD_PRIORITY, USER_MB_THREAD_WORK_AREA_SIZE, "mb_thread");
 
 void xMBPortPollThreadInit( void ) {
 	mb_thread_ID = osThreadCreate(osThread(mb_thread), NULL);
 	if (mb_thread_ID == NULL) {
 		abort();
 	}
-	mb_thread_ID->p_name = "mb_thread";
 }
 
